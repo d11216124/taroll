@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>塔羅牌抽牌</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: white;
+            margin-bottom: 24px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        h2 {
+            color: #667eea;
+            margin-bottom: 16px;
+            font-size: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .status {
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .status.waiting {
+            background: #f0f0f0;
+            color: #666;
+        }
+
+        .status.drawn {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 12px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .card-name {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .badge.upright {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .badge.reversed {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .card-position {
+            font-size: 0.9rem;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .card-keywords {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .keyword {
+            background: #f0f0f0;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            color: #555;
+        }
+
+        .card-meaning {
+            color: #555;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .card-advice {
+            color: #764ba2;
+            font-weight: 600;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                grid-template-columns: 1fr;
+            }
+
+            .results {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .keyboard-hint {
+            font-size: 0.75rem;
+            color: #999;
+            text-align: center;
+            margin-top: 12px;
+        }
+
+        .keyboard-key {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔮 塔羅牌抽牌</h1>
+    
+    <div class="container">
+        <!-- Left Panel: Settings -->
+        <div class="panel">
+            <h2>設定</h2>
+            
+            <div class="form-group">
+                <label for="topic">主題</label>
+                <select id="topic">
+                    <option value="general">一般</option>
+                    <option value="love">感情</option>
+                    <option value="career">工作</option>
+                    <option value="study">學業</option>
+                    <option value="money">金錢</option>
+                    <option value="health">身心</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="question">問題（可留空）</label>
+                <textarea id="question" placeholder="輸入你想問的問題..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="spread">牌陣</label>
+                <select id="spread">
+                    <option value="three">三張（現況/阻礙/建議）</option>
+                    <option value="single">單張（今日指引）</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="reversedProb">逆位機率</label>
+                <select id="reversedProb">
+                    <option value="0.5" selected>50%</option>
+                    <option value="0.35">35%</option>
+                    <option value="0.2">20%</option>
+                    <option value="0">0%</option>
+                </select>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" id="drawBtn">🎴 抽牌</button>
+                <button class="btn-secondary" id="redrawBtn">🔄 重新洗牌</button>
+                <button class="btn-success" id="copyBtn">📋 複製結果</button>
+                <button class="btn-danger" id="resetBtn">↺ 重置</button>
+            </div>
+
+            <div class="keyboard-hint">
+                快捷鍵：<span class="keyboard-key">D</span> 抽牌 
+                <span class="keyboard-key">R</span> 重新洗牌 
+                <span class="keyboard-key">C</span> 複製 
+                <span class="keyboard-key">Esc</span> 重置
+            </div>
+        </div>
+
+        <!-- Right Panel: Results -->
+        <div class="panel">
+            <h2>結果</h2>
+            <div id="status" class="status waiting">待抽牌</div>
+            <div id="results" class="results">
+                <div class="empty-state">
+                    <div class="empty-state-icon">🌟</div>
+                    <p>選擇設定後點擊「抽牌」開始</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== TAROT CARD DATA ==========
+        const TAROT_CARDS = [
+            {
+                id: 0,
+                name: "愚者 The Fool",
+                arcana: "major",
+                keywords: ["新開始", "冒險", "純真"],
+                meanings: {
+                    upright: {
+                        general: "代表新的開始與無限可能。你正站在人生的新起點，充滿好奇與期待。",
+                        love: "感情中有新的機會出現，保持開放的心態接受新關係。",
+                        career: "適合嘗試新的工作方向或創業，不要害怕跨出第一步。",
+                        study: "學習新事物的絕佳時機，保持初學者的心態。",
+                        money: "財務上有新的投資機會，但需謹慎評估風險。",
+                        health: "身心狀態良好，適合開始新的健康計畫。",
+                        advice: "勇於嘗試，但不要魯莽行事，保持純真但也要學習經驗。"
+                    },
+                    reversed: {
+                        general: "可能過於衝動或缺乏計畫。需要更謹慎地評估風險。",
+                        love: "感情中可能過於理想化，需要更實際的態度。",
+                        career: "工作上的決定可能過於草率，建議再三思考。",
+                        study: "學習缺乏計畫性，需要更有系統的方法。",
+                        money: "財務決策欠缺考慮，避免衝動消費。",
+                        health: "可能忽視身體的警訊，需要更注意健康。",
+                        advice: "放慢腳步，先做好準備再行動，避免不必要的風險。"
+                    }
+                }
+            },
+            {
+                id: 1,
+                name: "魔術師 The Magician",
+                arcana: "major",
+                keywords: ["創造", "技能", "行動力"],
+                meanings: {
+                    upright: {
+                        general: "你擁有實現目標所需的一切資源和能力。現在是展現才華、採取行動的時刻。",
+                        love: "感情中展現真實的自己，用行動表達愛意。",
+                        career: "工作能力得到發揮，適合展開新專案或提案。",
+                        study: "學習效率高，能快速掌握新知識和技能。",
+                        money: "財務管理得當，善用資源創造收益。",
+                        health: "身心協調，能量充沛。",
+                        advice: "相信自己的能力，將想法化為實際行動，善用手邊資源。"
+                    },
+                    reversed: {
+                        general: "可能缺乏信心或濫用才能。需要更誠實地面對自己的能力。",
+                        love: "感情中可能有操控或不誠實的行為。",
+                        career: "工作上才能未能充分發揮，或技能使用不當。",
+                        study: "學習動力不足，難以專注。",
+                        money: "財務規劃混亂，可能有欺騙或不當手段。",
+                        health: "能量失衡，需要調整生活作息。",
+                        advice: "重新檢視自己的能力，誠實面對，避免操控他人或自欺。"
+                    }
+                }
+            },
+            {
+                id: 2,
+                name: "女祭司 The High Priestess",
+                arcana: "major",
+                keywords: ["直覺", "內在智慧", "神秘"],
+                meanings: {
+                    upright: {
+                        general: "傾聽內在的聲音，相信直覺。答案已在你心中，需要安靜下來聆聽。",
+                        love: "感情需要更深層的理解，注重心靈的連結。",
+                        career: "工作決策應相信直覺，深入了解事情本質。",
+                        study: "學習重質不重量，深入思考比死記硬背更重要。",
+                        money: "財務狀況需要深入分析，不要只看表面。",
+                        health: "注意內在的身心訊號，可能需要冥想或休息。",
+                        advice: "花時間獨處，傾聽內心的智慧，不要急於做出決定。"
+                    },
+                    reversed: {
+                        general: "可能忽視直覺或過度理性。內在與外在失衡。",
+                        love: "感情中缺乏真誠的溝通，可能有秘密。",
+                        career: "工作上可能隱藏資訊或被隱瞞。",
+                        study: "學習過於膚淺，未深入理解。",
+                        money: "財務資訊不透明，需要更多調查。",
+                        health: "忽視身體的警訊，心理壓力大。",
+                        advice: "重新連結內在智慧，誠實面對自己的感受，避免自欺。"
+                    }
+                }
+            },
+            {
+                id: 3,
+                name: "皇后 The Empress",
+                arcana: "major",
+                keywords: ["豐盛", "滋養", "創造力"],
+                meanings: {
+                    upright: {
+                        general: "豐盛與成長的時期。生活充滿美好事物，創造力旺盛。",
+                        love: "感情甜蜜穩定，可能迎來新生命或新階段。",
+                        career: "工作成果豐碩，創意得到認可和實現。",
+                        study: "學習環境舒適，成長順利。",
+                        money: "財務狀況良好，收入穩定增長。",
+                        health: "身心健康，生命力旺盛。",
+                        advice: "享受當下的美好，滋養自己和他人，讓創意自由發揮。"
+                    },
+                    reversed: {
+                        general: "可能過度依賴他人或忽視自我照顧。創造力受阻。",
+                        love: "感情中可能過度付出或依賴，失去自我。",
+                        career: "工作創意受限，或過度追求完美。",
+                        study: "學習環境不佳，缺乏成長養分。",
+                        money: "財務上過度消費或投資失利。",
+                        health: "忽視自我照顧，身心疲憊。",
+                        advice: "重新平衡付出與接受，照顧好自己才能照顧他人。"
+                    }
+                }
+            },
+            {
+                id: 4,
+                name: "皇帝 The Emperor",
+                arcana: "major",
+                keywords: ["權威", "結構", "掌控"],
+                meanings: {
+                    upright: {
+                        general: "建立秩序與規則的時候。需要理性思考和明確的計畫。",
+                        love: "感情需要穩定的承諾和清楚的界線。",
+                        career: "工作上展現領導能力，建立系統和規範。",
+                        study: "學習需要有條理的方法和紀律。",
+                        money: "財務規劃嚴謹，建立長期穩定的基礎。",
+                        health: "需要規律的作息和運動計畫。",
+                        advice: "建立清楚的目標和計畫，展現領導力，但不要過於僵化。"
+                    },
+                    reversed: {
+                        general: "可能過於控制或缺乏彈性。權威受到挑戰。",
+                        love: "感情中可能過度控制或被控制，缺乏平等。",
+                        career: "工作上領導方式有問題，或抗拒權威。",
+                        study: "學習過於僵化或缺乏紀律。",
+                        money: "財務規劃過於保守或失去控制。",
+                        health: "作息混亂或過於嚴格。",
+                        advice: "在秩序與彈性間取得平衡，尊重他人的自主權。"
+                    }
+                }
+            },
+            {
+                id: 5,
+                name: "戀人 The Lovers",
+                arcana: "major",
+                keywords: ["選擇", "結合", "和諧"],
+                meanings: {
+                    upright: {
+                        general: "面臨重要的選擇。需要遵從內心，做出真誠的決定。",
+                        love: "感情和諧美滿，關係深化，可能有重要承諾。",
+                        career: "工作上面臨選擇，選擇符合價值觀的道路。",
+                        study: "找到學習的熱情所在，做出正確的選擇。",
+                        money: "財務決策需要考慮長遠，選擇符合價值觀的投資。",
+                        health: "身心和諧，保持平衡的生活方式。",
+                        advice: "忠於自己的價值觀做選擇，追求內外和諧一致。"
+                    },
+                    reversed: {
+                        general: "選擇困難或不和諧。可能違背自己的價值觀。",
+                        love: "感情出現分歧，溝通不良，可能面臨抉擇。",
+                        career: "工作選擇與價值觀衝突，難以決定。",
+                        study: "學習方向不明確，興趣不一致。",
+                        money: "財務決策猶豫不決，可能做出後悔的選擇。",
+                        health: "生活失衡，需要重新調整。",
+                        advice: "重新審視自己的價值觀，誠實面對內心的聲音。"
+                    }
+                }
+            },
+            {
+                id: 6,
+                name: "戰車 The Chariot",
+                arcana: "major",
+                keywords: ["勝利", "意志力", "前進"],
+                meanings: {
+                    upright: {
+                        general: "憑藉意志力克服障礙。掌握方向，勇往直前。",
+                        love: "感情需要明確的方向和決心，克服困難。",
+                        career: "工作上全力以赴，克服挑戰達成目標。",
+                        study: "學習專注投入，排除干擾達成目標。",
+                        money: "財務目標明確，努力實現計畫。",
+                        health: "身心充滿動力，積極改善健康。",
+                        advice: "保持專注和決心，平衡不同力量，勇敢前進。"
+                    },
+                    reversed: {
+                        general: "失去方向或過度激進。可能需要重新評估目標。",
+                        love: "感情中缺乏方向，或過於強勢。",
+                        career: "工作上失去動力，或過度競爭。",
+                        study: "學習缺乏專注，容易分心。",
+                        money: "財務計畫失控，過度冒進。",
+                        health: "身心失衡，過度消耗能量。",
+                        advice: "重新調整方向，在前進與休息間取得平衡。"
+                    }
+                }
+            },
+            {
+                id: 7,
+                name: "正義 Justice",
+                arcana: "major",
+                keywords: ["公平", "真相", "因果"],
+                meanings: {
+                    upright: {
+                        general: "事情會得到公平的結果。誠實面對，承擔責任。",
+                        love: "感情需要公平對待，誠實溝通。",
+                        career: "工作上公平對待，努力會得到應有的回報。",
+                        study: "學習成果公平反映付出，保持誠信。",
+                        money: "財務上誠實納稅，依法行事。",
+                        health: "健康狀況反映生活習慣，因果相應。",
+                        advice: "保持誠實和公正，為自己的行為負責，相信公平正義。"
+                    },
+                    reversed: {
+                        general: "可能面臨不公平的對待或逃避責任。",
+                        love: "感情中不公平，缺乏誠實。",
+                        career: "工作上遭遇不公，或自己不夠公正。",
+                        study: "學習評價不公平，或自己作弊。",
+                        money: "財務上不誠實，可能有法律問題。",
+                        health: "忽視健康問題的真正原因。",
+                        advice: "誠實面對問題，承擔責任，爭取應得的公平。"
+                    }
+                }
+            }
+        ];
+
+        // ========== SPREAD DEFINITIONS ==========
+        const SPREADS = {
+            three: [
+                { key: "present", label: "現況" },
+                { key: "block", label: "阻礙" },
+                { key: "advice", label: "建議" }
+            ],
+            single: [
+                { key: "guidance", label: "今日指引" }
+            ]
+        };
+
+        const TOPIC_LABELS = {
+            general: "一般",
+            love: "感情",
+            career: "工作",
+            study: "學業",
+            money: "金錢",
+            health: "身心"
+        };
+
+        const SPREAD_LABELS = {
+            three: "三張（現況/阻礙/建議）",
+            single: "單張（今日指引）"
+        };
+
+        // ========== STATE ==========
+        let currentDrawing = null;
+
+        // ========== UTILITY FUNCTIONS ==========
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function drawCards(count) {
+            const shuffled = shuffleArray(TAROT_CARDS);
+            return shuffled.slice(0, count);
+        }
+
+        function determineOrientation(reversedProb) {
+            return Math.random() < reversedProb ? "reversed" : "upright";
+        }
+
+        function getMeaning(card, orientation, topic) {
+            const meanings = card.meanings[orientation];
+            if (meanings[topic]) {
+                return meanings[topic];
+            }
+            if (meanings.general) {
+                return meanings.general;
+            }
+            return "（尚無牌義）";
+        }
+
+        function getAdvice(card, orientation) {
+            const meanings = card.meanings[orientation];
+            return meanings.advice || null;
+        }
+
+        // ========== DRAWING LOGIC ==========
+        function performDraw() {
+            const topic = document.getElementById("topic").value;
+            const question = document.getElementById("question").value.trim();
+            const spread = document.getElementById("spread").value;
+            const reversedProb = parseFloat(document.getElementById("reversedProb").value);
+
+            const positions = SPREADS[spread];
+            const cards = drawCards(positions.length);
+
+            const results = cards.map((card, index) => {
+                const orientation = determineOrientation(reversedProb);
+                const position = positions[index];
+                const meaning = getMeaning(card, orientation, topic);
+                const advice = getAdvice(card, orientation);
+
+                return {
+                    card,
+                    orientation,
+                    position,
+                    meaning,
+                    advice
+                };
+            });
+
+            currentDrawing = {
+                topic,
+                question,
+                spread,
+                results
+            };
+
+            renderResults();
+            updateStatus("drawn", "已抽牌");
+        }
+
+        // ========== RENDERING ==========
+        function renderResults() {
+            const resultsContainer = document.getElementById("results");
+            
+            if (!currentDrawing) {
+                resultsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🌟</div>
+                        <p>選擇設定後點擊「抽牌」開始</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const cardsHtml = currentDrawing.results.map((result, index) => {
+                const { card, orientation, position, meaning, advice } = result;
+                const orientationLabel = orientation === "upright" ? "正位" : "逆位";
+                const keywords = card.keywords.slice(0, 3);
+
+                return `
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-name">${card.name}</div>
+                            <span class="badge ${orientation}">${orientationLabel}</span>
+                        </div>
+                        <div class="card-position">${index + 1}. ${position.label}</div>
+                        <div class="card-keywords">
+                            ${keywords.map(kw => `<span class="keyword">${kw}</span>`).join("")}
+                        </div>
+                        <div class="card-meaning">${meaning}</div>
+                        ${advice ? `<div class="card-advice">建議：${advice}</div>` : ""}
+                    </div>
+                `;
+            }).join("");
+
+            resultsContainer.innerHTML = cardsHtml;
+        }
+
+        function updateStatus(type, message) {
+            const statusElement = document.getElementById("status");
+            statusElement.className = `status ${type}`;
+            statusElement.textContent = message;
+        }
+
+        // ========== COPY TO CLIPBOARD ==========
+        function copyResults() {
+            if (!currentDrawing) {
+                updateStatus("error", "尚未抽牌");
+                setTimeout(() => updateStatus("waiting", "待抽牌"), 2000);
+                return;
+            }
+
+            const { topic, question, spread, results } = currentDrawing;
+            const topicLabel = TOPIC_LABELS[topic];
+            const spreadLabel = SPREAD_LABELS[spread];
+
+            let text = "塔羅抽牌結果\n";
+            text += `主題：${topicLabel}\n`;
+            text += `牌陣：${spreadLabel}\n`;
+            if (question) {
+                text += `問題：${question}\n`;
+            }
+            text += "---\n";
+
+            results.forEach((result, index) => {
+                const { card, orientation, position, meaning, advice } = result;
+                const orientationLabel = orientation === "upright" ? "正位" : "逆位";
+                text += `${index + 1}. ${position.label}：${card.name}（${orientationLabel}）\n`;
+                text += `   解讀：${meaning}\n`;
+                if (advice) {
+                    text += `   建議：${advice}\n`;
+                }
+                if (index < results.length - 1) {
+                    text += "\n";
+                }
+            });
+
+            // Try modern clipboard API first
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        updateStatus("drawn", "✓ 已複製到剪貼簿");
+                        setTimeout(() => updateStatus("drawn", "已抽牌"), 2000);
+                    })
+                    .catch(() => {
+                        fallbackCopy(text);
+                    });
+            } else {
+                fallbackCopy(text);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textarea = document.createElement("textarea");
+            textarea.value = text;
+            textarea.style.position = "fixed";
+            textarea.style.opacity = "0";
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand("copy");
+                updateStatus("drawn", "✓ 已複製到剪貼簿");
+                setTimeout(() => updateStatus("drawn", "已抽牌"), 2000);
+            } catch (err) {
+                updateStatus("error", "複製失敗");
+                setTimeout(() => updateStatus("drawn", "已抽牌"), 2000);
+            }
+            
+            document.body.removeChild(textarea);
+        }
+
+        // ========== RESET ==========
+        function reset() {
+            document.getElementById("topic").value = "general";
+            document.getElementById("question").value = "";
+            document.getElementById("spread").value = "three";
+            document.getElementById("reversedProb").value = "0.5";
+            
+            currentDrawing = null;
+            renderResults();
+            updateStatus("waiting", "待抽牌");
+        }
+
+        // ========== EVENT HANDLERS ==========
+        document.getElementById("drawBtn").addEventListener("click", performDraw);
+        document.getElementById("redrawBtn").addEventListener("click", performDraw);
+        document.getElementById("copyBtn").addEventListener("click", copyResults);
+        document.getElementById("resetBtn").addEventListener("click", reset);
+
+        // ========== KEYBOARD SHORTCUTS ==========
+        document.addEventListener("keydown", (e) => {
+            // Don't trigger shortcuts when typing in input/textarea
+            if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") {
+                return;
+            }
+
+            const key = e.key.toUpperCase();
+            
+            switch (key) {
+                case "D":
+                    e.preventDefault();
+                    performDraw();
+                    break;
+                case "R":
+                    e.preventDefault();
+                    performDraw();
+                    break;
+                case "C":
+                    e.preventDefault();
+                    copyResults();
+                    break;
+                case "ESCAPE":
+                    e.preventDefault();
+                    reset();
+                    break;
+            }
+        });
+
+        // ========== INITIALIZE ==========
+        renderResults();
+    </script>
+</body>
+</html>
